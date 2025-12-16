@@ -15,6 +15,19 @@ services:
       - ./DB/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
       - ./DB/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
 
+  backend:
+    build:
+      context: ./BE            
+      dockerfile: Dockerfile   
+    container_name: EASY_MEAL_BE
+    depends_on:
+      - postgres               # ensure DB starts first
+    ports:
+      - "8000:8000"            # map container port to host
+
 
 volumes:
   pgdata:
+
+
+

@@ -1,21 +1,22 @@
-FROM python:3.11-slim
+# Use official Python base image
+FROM python:3.11
 
-RUN pip install poetry==1.6.1
+# Set working dir inside container
+WORKDIR /app
 
-RUN poetry config virtualenvs.create false
+# Copy requirements file
+COPY requirements.txt .
 
-WORKDIR /code
+# Install dependencies
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./pyproject.toml ./README.md ./poetry.lock* ./
+# Copy source code into container
+COPY . .
 
-COPY ./packages ./packages
+# (Optional) expose HTTP port
+EXPOSE 8000
 
-RUN poetry install  --no-interaction --no-ansi --no-root
+# Run Uvicorn to start the FastAPI / LangServe server
+CMD ["langchain", "serve", "--host", "0.0.0.0", "--port", "8000"]
 
-COPY ./app ./app
-
-RUN poetry install --no-interaction --no-ansi
-
-EXPOSE 8080
-
-CMD exec uvicorn app.server:app --host 0.0.0.0 --port 8080
