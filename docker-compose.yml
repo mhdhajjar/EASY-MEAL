@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: PG
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: DB
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./DB/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./DB/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+
+  backend:
+    build:
+      context: ./BE            
+      dockerfile: Dockerfile   
+    container_name: EASY_MEAL_BE
+    depends_on:
+      - postgres               # ensure DB starts first
+    ports:
+      - "8000:8000"            # map container port to host
+
+
+  frontend:
+    build:
+      context: ./FE           # change this to your frontend folder
+      dockerfile: Dockerfile # the one you showed with nginx
+    container_name: EASY_MEAL_FE
+    ports:
+      - "5173:80"            # map nginx port 80 → host port 3000
+    depends_on:
+      - backend
+
+
+volumes:
+  pgdata:
+
+
+

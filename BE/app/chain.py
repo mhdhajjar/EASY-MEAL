@@ -1,0 +1,61 @@
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from pydantic import BaseModel, Field
+from langchain_core.output_parsers import PydanticOutputParser
+
+from dotenv import load_dotenv; load_dotenv()
+
+# from PIL import Image  
+# from IPython.display import display
+
+# fridge_img = Image.open("../Random_Fridge.png")
+
+
+# ---------- Pydantic schema ----------
+
+class Item(BaseModel):
+    item_name: str = Field(
+        ..., description="single-word name of the item (e.g. milk, cheese, apple)"
+    )
+    number: int = Field(
+        ..., description="number of this item visible in the image"
+    )
+
+
+class StructuredOutput(BaseModel):
+    fridge: list[Item]
+
+
+# ---------- Output parser ----------
+
+parser = PydanticOutputParser(pydantic_object=StructuredOutput)
+format_instructions = parser.get_format_instructions().replace("{", "{{").replace("}", "}}")
+
+
+
+# --------------Task Discription ------------
+Task_Discription = "Analyze the fridge image and count each ingredient."
+# ---------- Prompt (VISION-AWARE) ----------
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system",  "You are a helpful assistant. "
+                "You will be given an image of a fridge, and you must name each ingredient you see and count how many of each ingredient appears. "
+                "You MUST follow the output format exactly as instructed."),
+    ("human", [ {"type": "text", "text": "{task_description}"},
+                {"type": "image_url", "image_url": {"url": "data:image/png;base64,{image_base64}"}},
+                {"type": "text", "text": "{format_output_instructions}"}])
+]).partial(format_output_instructions=format_instructions, task_description = Task_Discription)
+
+
+# ---------- Vision model ----------
+
+llm = ChatOpenAI(
+    model="gpt-4o-mini",
+    temperature=0
+)
+
+
+# ---------- Runnable chain ----------
+
+chain = prompt | llm | parser

@@ -1,0 +1,9 @@
+when ever we change inside our sql we need to re build the docker image simpley by
+
+
+docker compose down -v
+docker compose up -d
+
+and to open the container and comunicate with postgres
+
+psql -h localhost -U postgres
