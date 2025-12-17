@@ -32,7 +32,7 @@ services:
       dockerfile: Dockerfile # the one you showed with nginx
     container_name: EASY_MEAL_FE
     ports:
-      - "3000:80"            # map nginx port 80 → host port 3000
+      - "5173:80"            # map nginx port 80 → host port 3000
     depends_on:
       - backend
 
